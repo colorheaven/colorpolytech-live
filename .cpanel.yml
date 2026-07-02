@@ -1,0 +1,11 @@
+---
+deployment:
+  tasks:
+    - echo "Starting safe manual cPanel deployment for Color Polytech"
+    - /bin/mkdir -p ~/public_html
+    - /bin/mkdir -p ~/admin.colorpolytech.com
+    - /bin/mkdir -p ~/office.colorpolytech.com
+    - /usr/bin/rsync -a --exclude='.git' --exclude='.env' --exclude='*.env' --exclude='config/database.php' --exclude='uploads' --exclude='uploads/' --exclude='media' --exclude='media/' --exclude='logs' --exclude='logs/' --exclude='cache' --exclude='cache/' public/ ~/public_html/
+    - /usr/bin/rsync -a --exclude='.git' --exclude='.env' --exclude='*.env' --exclude='config/database.php' --exclude='uploads' --exclude='uploads/' --exclude='media' --exclude='media/' --exclude='logs' --exclude='logs/' --exclude='cache' --exclude='cache/' admin/ ~/admin.colorpolytech.com/
+    - /usr/bin/rsync -a --exclude='.git' --exclude='.env' --exclude='*.env' --exclude='config/database.php' --exclude='uploads' --exclude='uploads/' --exclude='media' --exclude='media/' --exclude='logs' --exclude='logs/' --exclude='cache' --exclude='cache/' office/ ~/office.colorpolytech.com/
+    - echo "Deployment copy finished. SQL migrations were NOT run automatically."
