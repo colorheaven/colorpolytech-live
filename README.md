@@ -1,12 +1,6 @@
 # Color Polytech Live
 
-Production-ready repository structure for the Color Polytech public website, Admin CMS, and Office ERP.
-
-## Domains
-
-- `colorpolytech.com` → `public/`
-- `admin.colorpolytech.com` → `admin/`
-- `office.colorpolytech.com` → `office/`
+PHP/MySQL project for Namecheap shared hosting with cPanel.
 
 ## Stack
 
@@ -15,44 +9,123 @@ Production-ready repository structure for the Color Polytech public website, Adm
 - PDO
 - Bootstrap 5
 - Vanilla JavaScript/AJAX
-- Namecheap shared hosting compatible
+- Shared-hosting compatible
+- No Laravel
+- No Node.js production dependency
+- No Docker production dependency
 
-## Database Plan
+## Domain Mapping
 
-- Website/Admin database: `colojmbr_cp`
-- Office/ERP database: `colojmbr_office`
+| Domain | cPanel folder | Repo folder |
+|---|---|---|
+| colorpolytech.com | `public_html/` | `public/` |
+| admin.colorpolytech.com | `admin.colorpolytech.com/` | `admin/` |
+| office.colorpolytech.com | `office.colorpolytech.com/` | `office/` |
 
-SQL files will be stored in `database/`.
+## Database Mapping
 
-## Security Notes
+| App | Database |
+|---|---|
+| Public website | `colojmbr_cp` |
+| Admin CMS | `colojmbr_cp` |
+| Office ERP | `colojmbr_office` |
 
-- Never commit real database credentials, API keys, SMS API credentials, or Gmail credentials.
-- Use `.env.example` as a template and create real `.env` files only on the live server.
-- Block admin and office private paths from search engines.
-- Never overwrite live `config/database.php` during deployment.
-- Never delete uploaded customer files from `uploads/` or `media/`.
+## Config Files
+
+Example files are included:
+
+- `public/config/database.example.php`
+- `admin/config/database.example.php`
+- `office/config/database.example.php`
+
+On the live server, copy the matching example file to `config/database.php` and fill the live cPanel values there only. The live config file is ignored by Git.
+
+## Deployment Safety
+
+- `.cpanel.yml` uses `rsync -a` only.
+- It does not use `--delete`.
+- Live-only config files are excluded.
+- Uploaded files and media folders are excluded.
+- Logs and cache folders are excluded.
+- SQL files are not imported automatically.
+- Database changes must be reviewed migration files under `database/migrations/`.
+- Keep existing ERP modules and data safe.
+
+## Beginner Deployment Steps
+
+### 1. Backup first
+
+Before deployment, backup these folders from cPanel File Manager:
+
+- `public_html/`
+- `admin.colorpolytech.com/`
+- `office.colorpolytech.com/`
+
+Then export these databases from phpMyAdmin:
+
+- `colojmbr_cp`
+- `colojmbr_office`
+
+### 2. Pull from GitHub
+
+In cPanel, open **Git Version Control**, connect or open this repository, then pull the latest `main` branch:
+
+`https://github.com/colorheaven/colorpolytech-live.git`
+
+### 3. Deploy HEAD Commit
+
+Click **Deploy HEAD Commit** in cPanel Git Version Control. cPanel will run `.cpanel.yml` and copy:
+
+- `public/` to `~/public_html/`
+- `admin/` to `~/admin.colorpolytech.com/`
+- `office/` to `~/office.colorpolytech.com/`
+
+### 4. Create live config once
+
+Inside each live app folder, copy `config/database.example.php` to `config/database.php` and fill the real cPanel database values on the server only.
+
+### 5. SQL migrations
+
+SQL is never run automatically. If a migration exists in `database/migrations/`, review it, backup the database, then import manually through phpMyAdmin only if needed.
+
+## Testing Checklist
+
+After deployment:
+
+1. Open `https://colorpolytech.com`.
+2. Open `https://admin.colorpolytech.com`.
+3. Open `https://office.colorpolytech.com`.
+4. Confirm all pages load without PHP fatal errors.
+5. Confirm admin and office `robots.txt` block indexing.
+6. Confirm live `config/database.php` files still exist.
+7. Confirm uploaded files and media are still present.
+8. Test public forms if available.
+9. Test Admin CMS login if available.
+10. Test Office ERP login if available.
+11. Test ERP order, delivery, invoice, collection, and approval pages if available.
+12. Check cPanel PHP error logs if any page is blank.
+
+## Rollback Steps
+
+If anything breaks:
+
+1. Do not import SQL.
+2. Deploy the previous working commit from cPanel Git Version Control if available.
+3. Restore the backed-up folders if needed.
+4. Restore database export only if a database change was imported.
+5. Check cPanel PHP error logs.
+6. Test the three domains again.
 
 ## Office Live Login Checklist
 
-Use this checklist when localhost login works but `office.colorpolytech.com` rejects the same user.
+When localhost login works but live office login fails:
 
-1. Confirm the office subdomain points to the correct folder: `office.colorpolytech.com/`.
-2. Confirm the office app uses the correct database: `colojmbr_office`.
-3. Confirm the live `users` table exists in `colojmbr_office` and contains the expected user row.
+1. Confirm `office.colorpolytech.com` points to the correct folder.
+2. Confirm office uses `colojmbr_office`.
+3. Confirm the live `users` table exists.
 4. Confirm username/email values have no leading or trailing spaces.
-5. Confirm the credential column can store modern hashes. Use `VARCHAR(255)` or `TEXT`.
-6. Confirm old records are handled safely if the older system used legacy formats.
-7. Confirm PHP sessions can write on Namecheap hosting.
-8. Confirm HTTPS is active and session cookies use secure/httponly settings.
-9. Confirm deployment does not replace the live-only database config file.
-10. Do not auto-run SQL on the live server; add schema changes as reviewed migration files.
-
-## Initial Structure
-
-```text
-public/     Public website files
-admin/      Admin CMS files
-office/     Office ERP files
-database/   SQL schema/import files
-docs/       Deployment and maintenance notes
-```
+5. Confirm the hash column is `VARCHAR(255)` or `TEXT`.
+6. Confirm old user records are compatible with the current login code.
+7. Confirm PHP sessions can write on hosting.
+8. Confirm HTTPS is active.
+9. Confirm deployment did not replace live config.
