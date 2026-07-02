@@ -51,6 +51,41 @@ On the live server, copy the matching example file to `config/database.php` and 
 - Database changes must be reviewed migration files under `database/migrations/`.
 - Keep existing ERP modules and data safe.
 
+## Direct GitHub to Namecheap Auto Upload
+
+This repo includes a GitHub Actions workflow:
+
+- `.github/workflows/deploy-namecheap.yml`
+
+When code is pushed to the `main` branch, GitHub Actions can upload these folders by FTP:
+
+- `public/` to `/public_html/`
+- `admin/` to `/admin.colorpolytech.com/`
+- `office/` to `/office.colorpolytech.com/`
+
+The workflow does not clean/delete the live server before upload. It also excludes live config, env files, uploads, media, logs and cache.
+
+### Required GitHub Secrets
+
+Add these in GitHub repo settings:
+
+- `CPANEL_FTP_SERVER`
+- `CPANEL_FTP_USERNAME`
+- `CPANEL_FTP_PASSWORD`
+
+Go to GitHub repository -> Settings -> Secrets and variables -> Actions -> New repository secret.
+
+Use the FTP details from Namecheap cPanel. Do not put FTP or cPanel login values inside code files.
+
+### Manual auto-upload run
+
+After adding the secrets:
+
+1. Open GitHub repository.
+2. Go to Actions.
+3. Select `Deploy to Namecheap cPanel`.
+4. Click `Run workflow`.
+
 ## Office ERP Active UI Scope
 
 The Office ERP UI is currently focused on these active modules only:
