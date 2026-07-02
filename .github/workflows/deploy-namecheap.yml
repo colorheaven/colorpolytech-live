@@ -1,0 +1,73 @@
+name: Deploy to Namecheap cPanel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Upload project folders to cPanel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy public website
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          local-dir: ./public/
+          server-dir: /public_html/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.env
+            **/*.env
+            **/config/database.php
+            **/uploads/**
+            **/media/**
+            **/logs/**
+            **/cache/**
+
+      - name: Deploy admin CMS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          local-dir: ./admin/
+          server-dir: /admin.colorpolytech.com/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.env
+            **/*.env
+            **/config/database.php
+            **/uploads/**
+            **/media/**
+            **/logs/**
+            **/cache/**
+
+      - name: Deploy office ERP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          local-dir: ./office/
+          server-dir: /office.colorpolytech.com/
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.env
+            **/*.env
+            **/config/database.php
+            **/uploads/**
+            **/media/**
+            **/logs/**
+            **/cache/**
