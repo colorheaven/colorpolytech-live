@@ -1,4 +1,7 @@
-# Secrets
+# Git
+.git/
+
+# Config
 .env
 *.env
 config/database.php
@@ -11,14 +14,19 @@ config/database.php
 *.tar.gz
 *.sql
 *.bak
+!database/*.example.sql
+!database/migrations/*.sql
 
 # Logs/cache
 logs/
+**/logs/
 cache/
+**/cache/
 tmp/
+**/tmp/
 storage/logs/
 
-# Uploaded live files - do not manage from Git
+# Live uploads/media
 uploads/
 **/uploads/
 media/
