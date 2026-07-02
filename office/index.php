@@ -56,7 +56,7 @@ $httpsStatus = office_is_https() ? 'HTTPS detected' : 'HTTPS not detected';
         <div class="card shadow-sm mx-auto" style="max-width: 560px;">
             <div class="card-body p-4">
                 <h1 class="h4 mb-3">Office ERP</h1>
-                <p class="text-muted">Starter page for order, delivery, accounts, inventory and approval system.</p>
+                <p class="text-muted">Starter page for customers, suppliers, products, orders, delivery, invoice, collection, reports, users, approval, ledger and dashboard.</p>
                 <div class="alert alert-info mb-0">
                     <strong>Live login base check:</strong><br>
                     Session: <?= htmlspecialchars($sessionStatus, ENT_QUOTES, 'UTF-8') ?><br>
