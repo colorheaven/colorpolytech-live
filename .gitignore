@@ -1,0 +1,43 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+config/local.php
+config/production.php
+
+# Logs and cache
+*.log
+logs/
+cache/
+tmp/
+temp/
+
+# Uploads generated on server
+public/uploads/*
+admin/uploads/*
+office/uploads/*
+!public/uploads/.gitkeep
+!admin/uploads/.gitkeep
+!office/uploads/.gitkeep
+
+# Backups and exports
+*.zip
+*.tar
+*.tar.gz
+*.sql
+!database/*.example.sql
+backups/
+
+# Dependencies if added later
+vendor/
+node_modules/
