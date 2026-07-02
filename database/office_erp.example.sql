@@ -1,5 +1,6 @@
 -- Color Polytech Office ERP starter schema
 -- Database: colojmbr_office
+-- Note: Review before importing. Do not auto-run on live server.
 
 CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -12,6 +13,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Live-login compatibility check:
+-- Ensure the live users.password_hash column is VARCHAR(255) or larger before using modern PHP hashes.
+-- If legacy user data exists, migrate carefully after taking a database backup.
 
 CREATE TABLE IF NOT EXISTS customers (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
