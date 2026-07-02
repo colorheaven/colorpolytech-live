@@ -51,6 +51,26 @@ On the live server, copy the matching example file to `config/database.php` and 
 - Database changes must be reviewed migration files under `database/migrations/`.
 - Keep existing ERP modules and data safe.
 
+## Office ERP Active UI Scope
+
+The Office ERP UI is currently focused on these active modules only:
+
+- Dashboard
+- Customers
+- Suppliers
+- Products
+- Orders
+- Delivery
+- Sales
+- Invoice
+- Collection
+- Reports
+- User Management
+- Approval
+- Ledger
+
+Other old or unused module files/data must remain untouched unless a future written approval confirms removal.
+
 ## Beginner Deployment Steps
 
 ### 1. Backup first
@@ -102,7 +122,7 @@ After deployment:
 8. Test public forms if available.
 9. Test Admin CMS login if available.
 10. Test Office ERP login if available.
-11. Test ERP order, delivery, invoice, collection, and approval pages if available.
+11. Test ERP order, delivery, invoice, collection, approval, ledger, customers, suppliers, products, and reports pages if available.
 12. Check cPanel PHP error logs if any page is blank.
 
 ## Rollback Steps
