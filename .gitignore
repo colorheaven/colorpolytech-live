@@ -1,43 +1,29 @@
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE/editor
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# Environment and secrets
+# Secrets
 .env
-.env.*
-!.env.example
-config/local.php
-config/production.php
+*.env
+config/database.php
+**/config/database.php
+**/config/local.php
 
-# Logs and cache
-*.log
-logs/
-cache/
-tmp/
-temp/
-
-# Uploads generated on server
-public/uploads/*
-admin/uploads/*
-office/uploads/*
-!public/uploads/.gitkeep
-!admin/uploads/.gitkeep
-!office/uploads/.gitkeep
-
-# Backups and exports
+# Backups
 *.zip
 *.tar
 *.tar.gz
 *.sql
-!database/*.example.sql
-backups/
+*.bak
 
-# Dependencies if added later
-vendor/
-node_modules/
+# Logs/cache
+logs/
+cache/
+tmp/
+storage/logs/
+
+# Uploaded live files - do not manage from Git
+uploads/
+**/uploads/
+media/
+**/media/
+
+# OS files
+.DS_Store
+Thumbs.db
