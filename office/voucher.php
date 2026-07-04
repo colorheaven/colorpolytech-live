@@ -26,7 +26,6 @@ $map = [
     'invoice' => 'invoice',
 ];
 
-type:
 $printType = $map[$module] ?? '';
 $title = $printType ? ucwords(str_replace('_',' ', $module)).' Print' : 'Voucher Print';
 include __DIR__.'/includes/header.php';
