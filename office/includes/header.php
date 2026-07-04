@@ -1,7 +1,7 @@
 <?php require_login(); $u=user(); $company=setting('company_name','Color Heaven'); ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=e($title??'ERP')?> - <?=e($company)?></title><link rel="icon" href="/assets/images/favicon.png"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link href="/assets/css/erp.css" rel="stylesheet"></head><body><div class="layout"><aside class="sidebar"><div class="brand"><img src="/assets/images/logo.png" alt="Color Heaven"><div><strong><?=e($company)?></strong><small><?=e(setting('company_tagline','The Empire of Color'))?></small></div></div><nav>
 <?php
-// Finance/accounting modules requested for removal are intentionally not listed here.
+// Removed/disabled modules are intentionally not listed here.
 // Old data/tables are not touched.
 $menu=[
     ['dashboard.php','bi-speedometer2','Dashboard','dashboard'],
@@ -11,13 +11,13 @@ $menu=[
     ['quotations.php','bi-file-earmark-text','Quotations','quotations'],
     ['customers.php','bi-people','Customers','customers'],
     ['products.php','bi-box-seam','Products','products'],
-    ['price_list.php','bi-tags','Price List','price_list'],
     ['bulk_data.php','bi-file-earmark-spreadsheet','Bulk Import/Export','bulk_data'],
     ['sales_orders.php','bi-cart-check','Sales Orders','sales_orders'],
     ['delivery_challans.php','bi-truck','Delivery Challans','delivery_challans'],
     ['sales_invoices.php','bi-receipt','Sales Invoices','sales_invoices'],
     ['collections.php','bi-cash-coin','Collections','collections'],
     ['inventory_movements.php','bi-stack','Inventory','inventory_movements'],
+    ['inventory_statement.php','bi-clipboard-data','Inventory Statement','inventory_movements'],
     ['ledger.php','bi-book','Ledger','ledger'],
     ['reports.php','bi-graph-up','Reports','reports'],
     ['settings.php','bi-gear','Settings','settings'],
