@@ -1,10 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
   var suggestionPattern = /(suggest|autocomplete|typeahead|search-result|lookup-result|dropdown-menu|results)/i;
+  var lookupInputSelector = 'input[name*="customer" i], input[id*="customer" i], input[name*="product" i], input[id*="product" i], input[name*="supplier" i], input[id*="supplier" i], input[name*="lead" i], input[id*="lead" i], input[list]';
 
   function isSuggestionBox(el) {
     if (!el || el === document.body || el === document.documentElement) return false;
     var idClass = ((el.id || '') + ' ' + (el.className || '')).toString();
     return suggestionPattern.test(idClass);
+  }
+
+  function isLookupInput(el) {
+    return !!(el && el.matches && el.matches(lookupInputSelector));
   }
 
   function suggestionBoxes() {
@@ -18,19 +23,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (isSuggestionBox(box)) box.style.display = 'none';
   }
 
-  function closeAllSuggestions(except) {
-    suggestionBoxes().forEach(function (box) {
-      if (except && (box === except || box.contains(except))) return;
-      hideBox(box);
-    });
-  }
-
   function closestSuggestionBox(el) {
     while (el && el !== document.body) {
       if (isSuggestionBox(el)) return el;
       el = el.parentElement;
     }
     return null;
+  }
+
+  function closeAllSuggestions(except) {
+    suggestionBoxes().forEach(function (box) {
+      if (except && (box === except || box.contains(except))) return;
+      hideBox(box);
+    });
   }
 
   function makeProductInputsMobileFriendly() {
@@ -48,51 +53,47 @@ document.addEventListener('DOMContentLoaded', function () {
   setTimeout(makeProductInputsMobileFriendly, 600);
   setTimeout(makeProductInputsMobileFriendly, 1500);
 
+  // Important: do NOT close suggestions when tapping/focusing customer/product inputs.
+  // Close only when user taps outside both the input and suggestion list.
   document.addEventListener('click', function (event) {
-    var box = closestSuggestionBox(event.target);
-    var isLookupInput = event.target.matches && event.target.matches('input, select, textarea');
+    var target = event.target;
+    var box = closestSuggestionBox(target);
 
     if (box) {
-      // Let the original click handler fill the input first, then close the list.
-      setTimeout(function () { closeAllSuggestions(); }, 120);
+      // Let existing app code select/fill the input first, then close the list.
+      setTimeout(function () { closeAllSuggestions(); }, 320);
       return;
     }
 
-    if (!isLookupInput) closeAllSuggestions();
-  }, true);
+    if (isLookupInput(target) || (target.closest && target.closest('form'))) {
+      return;
+    }
+
+    closeAllSuggestions();
+  }, false);
 
   document.addEventListener('touchend', function (event) {
-    var box = closestSuggestionBox(event.target);
-    if (box) setTimeout(function () { closeAllSuggestions(); }, 160);
-  }, true);
+    var target = event.target;
+    var box = closestSuggestionBox(target);
+    if (box) {
+      setTimeout(function () { closeAllSuggestions(); }, 420);
+      return;
+    }
+    if (isLookupInput(target)) return;
+  }, false);
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeAllSuggestions();
     if (event.key === 'Enter') {
       var box = closestSuggestionBox(document.activeElement);
-      setTimeout(function () { closeAllSuggestions(box); }, 120);
+      setTimeout(function () { closeAllSuggestions(box); }, 250);
     }
   });
 
-  document.addEventListener('change', function (event) {
-    if (event.target && event.target.matches('input, select')) {
-      setTimeout(closeAllSuggestions, 120);
-    }
-  }, true);
-
-  document.addEventListener('blur', function (event) {
-    if (event.target && event.target.matches('input, select, textarea')) {
-      setTimeout(function () {
-        var active = document.activeElement;
-        if (!closestSuggestionBox(active)) closeAllSuggestions(active);
-      }, 220);
-    }
-  }, true);
-
+  // Do not close on blur/change; mobile Safari fires these before the suggestion tap finishes.
   window.addEventListener('resize', closeAllSuggestions);
   window.addEventListener('orientationchange', closeAllSuggestions);
 
-  // Watch dynamically added rows/items and style product lookup fields.
   var mo = new MutationObserver(function () { makeProductInputsMobileFriendly(); });
   mo.observe(document.body, { childList: true, subtree: true });
 });
