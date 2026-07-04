@@ -8,6 +8,7 @@ function is_cols(string $table): array { try { return table_exists($table) ? tab
 function is_pick(string $table, array $cols): string { $all=is_cols($table); foreach($cols as $c){ if(in_array($c,$all,true)) return $c; } return ''; }
 function is_qty($v): string { return number_format((float)$v, 3); }
 function is_date($v): string { $ts=strtotime((string)$v); return $ts?date('d-M-y',$ts):(string)$v; }
+function is_fetch_row(string $table, int $id): array { if(!$id || !table_exists($table)) return []; try{$st=db()->prepare("SELECT * FROM `$table` WHERE id=? LIMIT 1");$st->execute([$id]);return $st->fetch() ?: [];}catch(Throwable $e){return [];} }
 
 function is_product_name_col(): string { return is_pick('products',['product_name','name','description']); }
 function is_product_label($raw): string {
@@ -35,6 +36,65 @@ function is_product_label($raw): string {
     } catch (Throwable $e) { return $raw; }
 }
 
+function is_customer_label($customerId): string {
+    $customerId = (int)$customerId;
+    if (!$customerId || !table_exists('customers')) return '';
+    $name = is_pick('customers',['customer_name','company_name','name']);
+    if (!$name) return '';
+    try { $st=db()->prepare("SELECT `$name` FROM customers WHERE id=? LIMIT 1"); $st->execute([$customerId]); return (string)($st->fetchColumn() ?: ''); } catch(Throwable $e){ return ''; }
+}
+function is_customer_from_reference(string $refType, int $refId): string {
+    $rt = strtolower(trim($refType));
+    if (!$refId) return '';
+    if (in_array($rt, ['sales_invoices','sales_invoice','invoice','invoices','legacy_sale'], true) && table_exists('sales_invoices')) {
+        $row = is_fetch_row('sales_invoices', $refId);
+        if ($row && isset($row['customer_id'])) return is_customer_label((int)$row['customer_id']);
+    }
+    if (in_array($rt, ['sales_orders','sales_order','order','orders'], true) && table_exists('sales_orders')) {
+        $row = is_fetch_row('sales_orders', $refId);
+        if ($row && isset($row['customer_id'])) return is_customer_label((int)$row['customer_id']);
+    }
+    if (in_array($rt, ['delivery_challans','delivery_challan','delivery_note','delivery_notes'], true) && table_exists('delivery_challans')) {
+        $dc = is_fetch_row('delivery_challans', $refId);
+        if ($dc && isset($dc['customer_id']) && $dc['customer_id']) return is_customer_label((int)$dc['customer_id']);
+        if ($dc && !empty($dc['sales_order_id']) && table_exists('sales_orders')) {
+            $so = is_fetch_row('sales_orders', (int)$dc['sales_order_id']);
+            if ($so && isset($so['customer_id'])) return is_customer_label((int)$so['customer_id']);
+        }
+    }
+    return '';
+}
+function is_invoice_id_from_reference(string $refType, int $refId): int {
+    $rt = strtolower(trim($refType));
+    if (!$refId || !table_exists('sales_invoices')) return 0;
+    if (in_array($rt, ['sales_invoices','sales_invoice','invoice','invoices','legacy_sale'], true)) {
+        return is_fetch_row('sales_invoices', $refId) ? $refId : 0;
+    }
+    if (in_array($rt, ['delivery_challans','delivery_challan','delivery_note','delivery_notes'], true)) {
+        $dc = table_exists('delivery_challans') ? is_fetch_row('delivery_challans', $refId) : [];
+        foreach (['delivery_challan_id','delivery_note_id'] as $col) {
+            if (in_array($col, is_cols('sales_invoices'), true)) {
+                try { $st=db()->prepare("SELECT id FROM sales_invoices WHERE `$col`=? ORDER BY id DESC LIMIT 1"); $st->execute([$refId]); $id=(int)$st->fetchColumn(); if($id) return $id; } catch(Throwable $e) {}
+            }
+        }
+        if ($dc && !empty($dc['sales_order_id']) && in_array('sales_order_id', is_cols('sales_invoices'), true)) {
+            try { $st=db()->prepare('SELECT id FROM sales_invoices WHERE sales_order_id=? ORDER BY id DESC LIMIT 1'); $st->execute([(int)$dc['sales_order_id']]); $id=(int)$st->fetchColumn(); if($id) return $id; } catch(Throwable $e) {}
+        }
+    }
+    if (in_array($rt, ['sales_orders','sales_order','order','orders'], true) && in_array('sales_order_id', is_cols('sales_invoices'), true)) {
+        try { $st=db()->prepare('SELECT id FROM sales_invoices WHERE sales_order_id=? ORDER BY id DESC LIMIT 1'); $st->execute([$refId]); return (int)($st->fetchColumn() ?: 0); } catch(Throwable $e) { return 0; }
+    }
+    return 0;
+}
+function is_invoice_link_for_row(array $r, string $refTypeCol, string $refIdCol): array {
+    $refType = $refTypeCol ? (string)($r[$refTypeCol] ?? '') : '';
+    $refId = $refIdCol ? (int)($r[$refIdCol] ?? 0) : 0;
+    $invoiceId = is_invoice_id_from_reference($refType, $refId);
+    if ($invoiceId) return ['label'=>'Invoice','url'=>'voucher.php?module=sales_invoices&id='.$invoiceId];
+    if ($refType && $refId) return ['label'=>'Voucher','url'=>'voucher.php?module='.rawurlencode($refType).'&id='.$refId];
+    return ['label'=>'Voucher','url'=>'voucher.php?module=inventory_movements&id='.(int)($r['id'] ?? 0)];
+}
+
 function is_matching_product_values(string $q): array {
     $q = trim($q);
     if ($q === '' || !table_exists('products')) return [];
@@ -58,7 +118,6 @@ function is_matching_product_values(string $q): array {
     } catch (Throwable $e) {}
     return array_values(array_unique(array_filter($values, fn($v)=>trim((string)$v)!=='')));
 }
-
 function is_apply_product_filter(string &$where, array &$params, string $productCol, string $productSearch): void {
     $productSearch = trim($productSearch);
     if (!$productCol || $productSearch === '') return;
@@ -71,7 +130,6 @@ function is_apply_product_filter(string &$where, array &$params, string $product
     }
     $where .= ' AND ('.implode(' OR ', $parts).')';
 }
-
 function is_opening_balance(string $productSearch, string $from, string $dateCol, string $productCol, string $qtyInCol, string $qtyOutCol): float {
     if(!$dateCol || !$productCol || !table_exists('inventory_movements')) return 0;
     $where = "DATE(`$dateCol`) < ?"; $params = [$from];
@@ -117,6 +175,8 @@ if(table_exists('inventory_movements')){
         $qout=$qtyOutCol?(float)($r[$qtyOutCol]??0):0;
         $totalIn += $qin; $totalOut += $qout; $balance += $qin - $qout;
         $r['_qty_in']=$qin; $r['_qty_out']=$qout; $r['_balance']=$balance;
+        $r['_customer_name']=is_customer_from_reference($refTypeCol?($r[$refTypeCol]??''):'', $refIdCol?(int)($r[$refIdCol]??0):0);
+        $r['_voucher_link']=is_invoice_link_for_row($r, $refTypeCol, $refIdCol);
         $rows[]=$r;
     }
 }
@@ -125,8 +185,8 @@ if($export==='csv'){
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="inventory_statement_'.date('Ymd_His').'.csv"');
     $out=fopen('php://output','w');
-    fputcsv($out,['Date','Product','Movement Type','Reference','Qty In','Qty Out','Balance','Rate','Remarks']);
-    foreach($rows as $r){fputcsv($out,[$dateCol?($r[$dateCol]??''):'',$productCol?is_product_label($r[$productCol]??''):'',$typeCol?($r[$typeCol]??''):'',trim(($refTypeCol?($r[$refTypeCol]??''):'').' '.($refIdCol?($r[$refIdCol]??''):'')),$r['_qty_in'],$r['_qty_out'],$r['_balance'],$rateCol?($r[$rateCol]??0):0,$noteCol?($r[$noteCol]??''):'']);}
+    fputcsv($out,['Date','Product','Customer','Movement Type','Reference','Qty In','Qty Out','Balance','Rate','Remarks']);
+    foreach($rows as $r){fputcsv($out,[$dateCol?($r[$dateCol]??''):'',$productCol?is_product_label($r[$productCol]??''):'',$r['_customer_name'],$typeCol?($r[$typeCol]??''):'',trim(($refTypeCol?($r[$refTypeCol]??''):'').' '.($refIdCol?($r[$refIdCol]??''):'')),$r['_qty_in'],$r['_qty_out'],$r['_balance'],$rateCol?($r[$rateCol]??0):0,$noteCol?($r[$noteCol]??''):'']);}
     fclose($out);exit;
 }
 
@@ -135,8 +195,8 @@ if($typeCol && table_exists('inventory_movements')){try{$types=db()->query("SELE
 include __DIR__.'/includes/header.php';
 ?>
 <style>@media print{.no-print,.sidebar,.topbar{display:none!important}.main,.content{margin:0!important;padding:0!important}body{background:#fff!important}.card{border:0!important}.table{font-size:11px}}</style>
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print"><div><h3>Inventory Statement</h3><p class="text-muted mb-0">Period-wise stock movement statement with running balance.</p></div><div class="d-flex gap-2"><button class="btn btn-primary" onclick="window.print()">Print / PDF</button><a class="btn btn-outline-success" href="inventory_statement.php?from=<?=e($from)?>&to=<?=e($to)?>&product_q=<?=urlencode($productSearch)?>&movement_type=<?=urlencode($movementType)?>&export=csv">Export CSV</a><a class="btn btn-light" href="inventory_movements.php">Back</a></div></div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print"><div><h3>Inventory Statement</h3><p class="text-muted mb-0">Period-wise stock movement statement with customer name, invoice link and running balance.</p></div><div class="d-flex gap-2"><button class="btn btn-primary" onclick="window.print()">Print / PDF</button><a class="btn btn-outline-success" href="inventory_statement.php?from=<?=e($from)?>&to=<?=e($to)?>&product_q=<?=urlencode($productSearch)?>&movement_type=<?=urlencode($movementType)?>&export=csv">Export CSV</a><a class="btn btn-light" href="inventory_movements.php">Back</a></div></div>
 <div class="card mb-3 no-print"><div class="card-body"><form method="get" class="row g-2 align-items-end"><div class="col-md-2"><label class="form-label">From</label><input type="date" class="form-control" name="from" value="<?=e($from)?>"></div><div class="col-md-2"><label class="form-label">To</label><input type="date" class="form-control" name="to" value="<?=e($to)?>"></div><div class="col-md-4"><label class="form-label">Product</label><input class="form-control" id="inventoryProductSearch" name="product_q" value="<?=e($productSearch)?>" list="inventoryProductSuggestions" autocomplete="off" placeholder="Type product name/code, e.g. White CMB"><datalist id="inventoryProductSuggestions"></datalist></div><div class="col-md-2"><label class="form-label">Movement Type</label><select class="form-select" name="movement_type"><option value="">All</option><?php foreach($types as $t):?><option value="<?=e($t['t'])?>" <?=$movementType===$t['t']?'selected':''?>><?=e($t['t'])?></option><?php endforeach;?></select></div><div class="col-md-2"><button class="btn btn-primary w-100">Filter</button></div></form></div></div>
-<div class="card"><div class="card-body"><div class="text-center mb-3"><h4><?=e(setting('company_name','Color Heaven'))?></h4><strong>Inventory Statement</strong><br><span><?=e(is_date($from))?> to <?=e(is_date($to))?></span><?php if($productSearch):?><br><strong><?=e(is_product_label($productSearch))?></strong><?php endif;?></div><div class="row g-2 mb-3"><div class="col-md-3"><div class="border p-2"><small>Opening</small><h5><?=is_qty($opening)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Total In</small><h5><?=is_qty($totalIn)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Total Out</small><h5><?=is_qty($totalOut)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Closing</small><h5><?=is_qty($balance)?></h5></div></div></div><div class="table-responsive"><table class="table table-bordered table-sm align-middle"><thead><tr><th>Date</th><th>Product</th><th>Movement Type</th><th>Reference</th><th class="text-end">Qty In</th><th class="text-end">Qty Out</th><th class="text-end">Balance</th><th class="text-end">Rate</th><th>Remarks</th><th class="no-print">Voucher</th></tr></thead><tbody><?php foreach($rows as $r):?><tr><td><?=e($dateCol?is_date($r[$dateCol]??''):'')?></td><td><?=e($productCol?is_product_label($r[$productCol]??''):'')?></td><td><?=e($typeCol?($r[$typeCol]??''):'')?></td><td><?=e(trim(($refTypeCol?($r[$refTypeCol]??''):'').' '.($refIdCol?($r[$refIdCol]??''):'')))?></td><td class="text-end"><?=is_qty($r['_qty_in'])?></td><td class="text-end"><?=is_qty($r['_qty_out'])?></td><td class="text-end"><?=is_qty($r['_balance'])?></td><td class="text-end"><?=e($rateCol?number_format((float)($r[$rateCol]??0),2):'')?></td><td><?=e($noteCol?($r[$noteCol]??''):'')?></td><td class="no-print"><a class="btn btn-sm btn-outline-secondary" href="voucher.php?module=inventory_movements&id=<?=$r['id']?>">Voucher</a></td></tr><?php endforeach;?><?php if(!$rows):?><tr><td colspan="10" class="text-center text-muted">No stock movement found.</td></tr><?php endif;?></tbody></table></div></div></div>
+<div class="card"><div class="card-body"><div class="text-center mb-3"><h4><?=e(setting('company_name','Color Heaven'))?></h4><strong>Inventory Statement</strong><br><span><?=e(is_date($from))?> to <?=e(is_date($to))?></span><?php if($productSearch):?><br><strong><?=e(is_product_label($productSearch))?></strong><?php endif;?></div><div class="row g-2 mb-3"><div class="col-md-3"><div class="border p-2"><small>Opening</small><h5><?=is_qty($opening)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Total In</small><h5><?=is_qty($totalIn)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Total Out</small><h5><?=is_qty($totalOut)?></h5></div></div><div class="col-md-3"><div class="border p-2"><small>Closing</small><h5><?=is_qty($balance)?></h5></div></div></div><div class="table-responsive"><table class="table table-bordered table-sm align-middle"><thead><tr><th>Date</th><th>Product</th><th>Customer Name</th><th>Movement Type</th><th>Reference</th><th class="text-end">Qty In</th><th class="text-end">Qty Out</th><th class="text-end">Balance</th><th class="text-end">Rate</th><th>Remarks</th><th class="no-print">Voucher</th></tr></thead><tbody><?php foreach($rows as $r): $vl=$r['_voucher_link']; ?><tr><td><?=e($dateCol?is_date($r[$dateCol]??''):'')?></td><td><?=e($productCol?is_product_label($r[$productCol]??''):'')?></td><td><?=e($r['_customer_name'])?></td><td><?=e($typeCol?($r[$typeCol]??''):'')?></td><td><?=e(trim(($refTypeCol?($r[$refTypeCol]??''):'').' '.($refIdCol?($r[$refIdCol]??''):'')))?></td><td class="text-end"><?=is_qty($r['_qty_in'])?></td><td class="text-end"><?=is_qty($r['_qty_out'])?></td><td class="text-end"><?=is_qty($r['_balance'])?></td><td class="text-end"><?=e($rateCol?number_format((float)($r[$rateCol]??0),2):'')?></td><td><?=e($noteCol?($r[$noteCol]??''):'')?></td><td class="no-print"><a class="btn btn-sm btn-outline-secondary" href="<?=e($vl['url'])?>"><?=e($vl['label'])?></a></td></tr><?php endforeach;?><?php if(!$rows):?><tr><td colspan="11" class="text-center text-muted">No stock movement found.</td></tr><?php endif;?></tbody></table></div></div></div>
 <script>(function(){const input=document.getElementById('inventoryProductSearch'),list=document.getElementById('inventoryProductSuggestions');let timer=null;if(!input||!list)return;input.addEventListener('input',function(){const q=input.value.trim();clearTimeout(timer);if(q.length<1){list.innerHTML='';return;}timer=setTimeout(function(){fetch('inventory_product_suggest.php?q='+encodeURIComponent(q),{credentials:'same-origin'}).then(r=>r.ok?r.json():[]).then(rows=>{list.innerHTML='';rows.forEach(row=>{const opt=document.createElement('option');opt.value=row.name;opt.label=row.label||row.name;list.appendChild(opt);});}).catch(()=>{list.innerHTML='';});},180);});})();</script>
 <?php include __DIR__.'/includes/footer.php'; ?>
