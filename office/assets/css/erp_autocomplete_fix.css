@@ -1,0 +1,112 @@
+/* Mobile autocomplete and voucher product lookup UX fixes */
+.autocomplete-results,
+.autocomplete-suggestions,
+.suggestions,
+.suggestion-list,
+.search-results,
+.lookup-results,
+.typeahead-results,
+.dropdown-menu.show {
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 3000;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .18);
+  border-radius: 10px;
+}
+
+.autocomplete-results *,
+.autocomplete-suggestions *,
+.suggestions *,
+.suggestion-list *,
+.search-results *,
+.lookup-results *,
+.typeahead-results * {
+  white-space: normal !important;
+  line-height: 1.35;
+}
+
+.erp-product-lookup-input {
+  min-width: 260px;
+}
+
+.erp-product-lookup-cell {
+  min-width: 330px;
+  position: relative;
+}
+
+.erp-voucher-items-table td,
+.erp-voucher-items-table th {
+  vertical-align: top;
+}
+
+@media (max-width: 767.98px) {
+  .erp-voucher-items-table {
+    min-width: 980px;
+  }
+
+  .erp-product-lookup-cell {
+    min-width: 390px !important;
+  }
+
+  .erp-product-lookup-input {
+    min-width: 340px !important;
+    width: 100% !important;
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+
+  .autocomplete-results,
+  .autocomplete-suggestions,
+  .suggestions,
+  .suggestion-list,
+  .search-results,
+  .lookup-results,
+  .typeahead-results,
+  .dropdown-menu.show {
+    width: min(92vw, 680px) !important;
+    max-width: 92vw !important;
+    left: 0 !important;
+    right: auto !important;
+    max-height: 46vh;
+    font-size: 15px;
+  }
+
+  .autocomplete-results a,
+  .autocomplete-results div,
+  .autocomplete-suggestions a,
+  .autocomplete-suggestions div,
+  .suggestions a,
+  .suggestions div,
+  .suggestion-list a,
+  .suggestion-list div,
+  .search-results a,
+  .search-results div,
+  .lookup-results a,
+  .lookup-results div,
+  .typeahead-results a,
+  .typeahead-results div,
+  .dropdown-menu.show a,
+  .dropdown-menu.show button {
+    padding: 10px 12px;
+    word-break: break-word;
+  }
+
+  .autocomplete-results b,
+  .autocomplete-results strong,
+  .autocomplete-suggestions b,
+  .autocomplete-suggestions strong,
+  .suggestions b,
+  .suggestions strong,
+  .suggestion-list b,
+  .suggestion-list strong,
+  .search-results b,
+  .search-results strong,
+  .lookup-results b,
+  .lookup-results strong,
+  .typeahead-results b,
+  .typeahead-results strong {
+    display: inline;
+    font-size: 1rem;
+  }
+}
