@@ -106,7 +106,7 @@ $roles = db()->query('SELECT r.*, COUNT(u.id) user_count FROM roles r LEFT JOIN 
 $perms = db()->query('SELECT id, COALESCE(code, CONCAT(module,\'.\',action)) code, module, action, label FROM permissions ORDER BY module, action')->fetchAll();
 $grouped = [];
 $disabledPermissionModules = [
-    'payments','expenses','purchases','cash_bank','cash_accounts','bank_accounts','expense_heads','journal_vouchers','contra_vouchers','profit_loss'
+    'payments','expenses','purchases','cash_bank','cash_accounts','bank_accounts','expense_heads','journal_vouchers','contra_vouchers','profit_loss','price_list'
 ];
 foreach ($perms as $p) {
     if (in_array((string)$p['module'], $disabledPermissionModules, true)) continue;
