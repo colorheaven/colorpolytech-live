@@ -20,6 +20,7 @@ $menu=[
     ['inventory_statement.php','bi-clipboard-data','Inventory Statement','inventory_movements'],
     ['ledger.php','bi-book','Ledger','ledger'],
     ['reports.php','bi-graph-up','Reports','reports'],
+    ['ageing_report.php','bi-hourglass-split','Ageing Report','reports'],
     ['settings.php','bi-gear','Settings','settings'],
     ['sms_settings.php','bi-chat-dots','SMS Settings','sms_settings'],
     ['users.php','bi-person-gear','Users','users'],
