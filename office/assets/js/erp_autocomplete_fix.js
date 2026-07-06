@@ -1,6 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
   var suggestionPattern = /(suggest|autocomplete|typeahead|search-result|lookup-result|dropdown-menu|results)/i;
-  var lookupInputSelector = 'input[name*="customer" i], input[id*="customer" i], input[name*="product" i], input[id*="product" i], input[name*="supplier" i], input[id*="supplier" i], input[name*="lead" i], input[id*="lead" i], input[list]';
+  var lookupInputSelector = [
+    'input:not([type="hidden"])[name*="customer" i]',
+    'input:not([type="hidden"])[id*="customer" i]',
+    'input:not([type="hidden"])[name*="product" i]',
+    'input:not([type="hidden"])[id*="product" i]',
+    'input:not([type="hidden"])[name*="supplier" i]',
+    'input:not([type="hidden"])[id*="supplier" i]',
+    'input:not([type="hidden"])[name*="lead" i]',
+    'input:not([type="hidden"])[id*="lead" i]',
+    'input:not([type="hidden"])[list]',
+    'select[name*="customer" i]',
+    'select[id*="customer" i]',
+    'select[name*="product" i]',
+    'select[id*="product" i]',
+    'select[name*="supplier" i]',
+    'select[id*="supplier" i]'
+  ].join(',');
 
   function isSuggestionBox(el) {
     if (!el || el === document.body || el === document.documentElement) return false;
@@ -38,10 +54,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  function protectLookupInput(input) {
+    if (!isLookupInput(input)) return;
+    input.classList.add('erp-lookup-visible');
+    input.removeAttribute('hidden');
+    input.style.visibility = 'visible';
+    input.style.opacity = '1';
+    input.style.pointerEvents = 'auto';
+    if (input.style.display === 'none') input.style.display = 'block';
+    var wrap = input.closest('td, .col, [class*="col-"], .form-group, .mb-3, .mb-2, .field, .form-floating');
+    if (wrap) wrap.classList.add('erp-lookup-visible-wrap');
+  }
+
+  function protectAllLookups() {
+    document.querySelectorAll(lookupInputSelector).forEach(protectLookupInput);
+  }
+
   function makeProductInputsMobileFriendly() {
-    var selector = 'input[name*="product" i], input[id*="product" i], select[name*="product" i], select[id*="product" i]';
+    var selector = 'input:not([type="hidden"])[name*="product" i], input:not([type="hidden"])[id*="product" i], select[name*="product" i], select[id*="product" i]';
     document.querySelectorAll(selector).forEach(function (input) {
       input.classList.add('erp-product-lookup-input');
+      protectLookupInput(input);
       var cell = input.closest('td, .col, [class*="col-"]');
       if (cell) cell.classList.add('erp-product-lookup-cell');
       var table = input.closest('table');
@@ -49,25 +82,34 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  protectAllLookups();
   makeProductInputsMobileFriendly();
-  setTimeout(makeProductInputsMobileFriendly, 600);
-  setTimeout(makeProductInputsMobileFriendly, 1500);
+  setTimeout(function () { protectAllLookups(); makeProductInputsMobileFriendly(); }, 600);
+  setTimeout(function () { protectAllLookups(); makeProductInputsMobileFriendly(); }, 1500);
+
+  document.addEventListener('focusin', function (event) {
+    if (isLookupInput(event.target)) {
+      protectLookupInput(event.target);
+    }
+  }, true);
 
   // Important: do NOT close suggestions when tapping/focusing customer/product inputs.
-  // Close only when user taps outside both the input and suggestion list.
+  // Close only when user selects a suggestion or taps clearly outside the form area.
   document.addEventListener('click', function (event) {
     var target = event.target;
     var box = closestSuggestionBox(target);
 
     if (box) {
-      // Let existing app code select/fill the input first, then close the list.
-      setTimeout(function () { closeAllSuggestions(); }, 320);
+      setTimeout(function () { closeAllSuggestions(); protectAllLookups(); }, 380);
       return;
     }
 
-    if (isLookupInput(target) || (target.closest && target.closest('form'))) {
+    if (isLookupInput(target)) {
+      protectLookupInput(target);
       return;
     }
+
+    if (target.closest && target.closest('form')) return;
 
     closeAllSuggestions();
   }, false);
@@ -76,24 +118,26 @@ document.addEventListener('DOMContentLoaded', function () {
     var target = event.target;
     var box = closestSuggestionBox(target);
     if (box) {
-      setTimeout(function () { closeAllSuggestions(); }, 420);
+      setTimeout(function () { closeAllSuggestions(); protectAllLookups(); }, 480);
       return;
     }
-    if (isLookupInput(target)) return;
+    if (isLookupInput(target)) {
+      protectLookupInput(target);
+      return;
+    }
   }, false);
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeAllSuggestions();
     if (event.key === 'Enter') {
       var box = closestSuggestionBox(document.activeElement);
-      setTimeout(function () { closeAllSuggestions(box); }, 250);
+      setTimeout(function () { closeAllSuggestions(box); protectAllLookups(); }, 250);
     }
   });
 
-  // Do not close on blur/change; mobile Safari fires these before the suggestion tap finishes.
   window.addEventListener('resize', closeAllSuggestions);
   window.addEventListener('orientationchange', closeAllSuggestions);
 
-  var mo = new MutationObserver(function () { makeProductInputsMobileFriendly(); });
-  mo.observe(document.body, { childList: true, subtree: true });
+  var mo = new MutationObserver(function () { protectAllLookups(); makeProductInputsMobileFriendly(); });
+  mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
 });
