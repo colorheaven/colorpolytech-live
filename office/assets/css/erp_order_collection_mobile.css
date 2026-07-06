@@ -1,0 +1,175 @@
+/* Mobile-friendly order and collection entry UI */
+@media (max-width: 767.98px) {
+  body:has([action*="sales_orders"], [action*="collections"]),
+  body:has(input[name*="order" i]),
+  body:has(input[name*="collection" i]) {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Form cards and sections */
+  .content .card,
+  .content form .card,
+  form.card {
+    border-radius: 14px;
+  }
+
+  .content form .row,
+  form .row {
+    --bs-gutter-y: .9rem;
+  }
+
+  .content form label,
+  form label,
+  .form-label {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+
+  .content form input,
+  .content form select,
+  .content form textarea,
+  form input.form-control,
+  form select.form-select,
+  form textarea.form-control {
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  textarea.form-control {
+    min-height: 92px;
+  }
+
+  /* Make order/collection form columns full width on mobile */
+  form [class*="col-md-"],
+  form [class*="col-lg-"],
+  form [class*="col-xl-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Voucher/item detail table */
+  table:has(input[name*="product" i]),
+  table:has(select[name*="product" i]),
+  table:has(input[name*="qty" i]),
+  table:has(input[name*="quantity" i]) {
+    min-width: 1060px !important;
+  }
+
+  td:has(input[name*="product" i]),
+  td:has(select[name*="product" i]) {
+    min-width: 420px !important;
+    max-width: 520px !important;
+  }
+
+  td:has(input[name*="qty" i]),
+  td:has(input[name*="quantity" i]),
+  td:has(input[name*="rate" i]),
+  td:has(input[name*="amount" i]) {
+    min-width: 140px !important;
+  }
+
+  /* Totals area */
+  input[name*="subtotal" i],
+  input[name*="discount" i],
+  input[name*="vat" i],
+  input[name*="total" i],
+  input[name*="amount" i] {
+    text-align: right;
+    font-weight: 700;
+  }
+
+  /* Collection payment details */
+  select[name*="type" i],
+  select[name*="method" i],
+  select[name*="account" i],
+  input[name*="cheque" i],
+  input[name*="bank" i],
+  input[name*="receipt" i] {
+    min-height: 50px;
+  }
+
+  /* Sticky submit buttons if button row is near bottom */
+  form .col-12:last-child:has(button),
+  form .d-flex:last-child:has(button),
+  form .text-end:last-child:has(button) {
+    position: sticky;
+    bottom: 0;
+    z-index: 980;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(8px);
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e5e7eb;
+    margin-top: 12px;
+  }
+
+  form .col-12:last-child:has(button) .btn,
+  form .d-flex:last-child:has(button) .btn,
+  form .text-end:last-child:has(button) .btn {
+    min-height: 46px;
+    border-radius: 12px;
+    font-weight: 700;
+    flex: 1 1 auto;
+  }
+
+  /* Better top action row wrapping */
+  .content > .d-flex:first-child,
+  .content .card-body > .d-flex:first-child {
+    gap: 10px;
+  }
+
+  .content > .d-flex:first-child .btn,
+  .content .card-body > .d-flex:first-child .btn {
+    min-height: 42px;
+  }
+
+  /* Suggestion lists should not cover the whole form */
+  .autocomplete-results,
+  .autocomplete-suggestions,
+  .suggestions,
+  .suggestion-list,
+  .lookup-results,
+  .search-results,
+  .typeahead-results {
+    max-height: 42vh !important;
+    border: 1px solid #d1d5db;
+  }
+
+  /* Make Add item buttons easier to tap */
+  button[id*="add" i],
+  button[class*="add" i],
+  a[id*="add" i],
+  a[class*="add" i] {
+    min-height: 42px;
+    border-radius: 10px;
+  }
+
+  /* Reduce side clipping in iPhone Safari */
+  .content {
+    overflow-x: hidden;
+  }
+
+  .table-responsive {
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+}
+
+@media (max-width: 420px) {
+  td:has(input[name*="product" i]),
+  td:has(select[name*="product" i]) {
+    min-width: 440px !important;
+  }
+
+  .content form input,
+  .content form select,
+  .content form textarea,
+  form input.form-control,
+  form select.form-select,
+  form textarea.form-control {
+    font-size: 16px;
+  }
+}
