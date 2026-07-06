@@ -1,0 +1,6 @@
+<?php
+require_once __DIR__.'/includes/ch_ui_components.php';
+ch_begin_app('activity','Activity Log');
+?>
+<div class="ch-stats mb-4"><?php ch_stat_card('Login Events','24','bi-box-arrow-in-right','primary'); ch_stat_card('Voucher Edits','8','bi-pencil-square','warning'); ch_stat_card('Deletes','2','bi-trash','danger'); ch_stat_card('Exports','12','bi-download','secondary'); ?></div>
+<?php ch_module_list('Audit Activity Log','User / Module'); ch_end_app(); ?>
