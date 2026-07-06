@@ -1,0 +1,70 @@
+.erp-order-product-cell {
+  position: relative !important;
+  min-width: 280px !important;
+  overflow: visible !important;
+}
+
+.erp-order-product-input {
+  display: block !important;
+  width: 100% !important;
+  min-width: 240px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.erp-order-product-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(520px, 90vw);
+  max-height: 320px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-shadow: 0 14px 32px rgba(15,23,42,.18);
+  z-index: 5000;
+}
+
+.erp-product-suggestion-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: #fff;
+  text-align: left;
+  padding: 10px 12px;
+  color: #0d6efd;
+  line-height: 1.35;
+}
+
+.erp-product-suggestion-item:hover,
+.erp-product-suggestion-item:focus {
+  background: #eef5ff;
+}
+
+.erp-product-suggestion-item strong {
+  font-size: 14px;
+}
+
+.erp-product-suggestion-item small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+@media (max-width: 767.98px) {
+  .erp-order-product-cell {
+    min-width: 420px !important;
+  }
+
+  .erp-order-product-input {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    min-width: 360px !important;
+  }
+
+  .erp-order-product-suggestions {
+    width: min(92vw, 640px) !important;
+    max-height: 44vh;
+  }
+}
