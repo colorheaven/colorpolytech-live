@@ -1,1 +1,3 @@
-<?php require __DIR__.'/module_deleted.php';
+<?php
+require_once __DIR__.'/ch_payment_create.php';
+?>
