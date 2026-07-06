@@ -1,0 +1,3 @@
+<?php require_once __DIR__.'/includes/ch_ui_components.php'; ch_begin_app('approvals','Approvals'); ?>
+<div class="ch-stats mb-4"><?php ch_stat_card('Pending Orders','7','bi-cart-check','warning'); ch_stat_card('Pending Collections','4','bi-cash-coin','warning'); ch_stat_card('Pending Delivery','6','bi-truck','primary'); ch_stat_card('Rejected Today','1','bi-x-circle','danger'); ?></div>
+<?php ch_module_list('Approval Queue','Voucher / Party'); ch_end_app(); ?>
