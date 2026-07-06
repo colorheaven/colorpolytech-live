@@ -3,116 +3,22 @@
  * Color Heaven ERP professional responsive UI components.
  * UI-only scaffold: no database writes, no live workflow changes.
  */
-if (!function_exists('ch_e')) {
-    function ch_e($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
-}
-if (!function_exists('ch_current_role')) {
-    function ch_current_role(): string {
-        if (function_exists('user')) {
-            $u = user();
-            if (!empty($u['role_name'])) return (string)$u['role_name'];
-        }
-        return 'Super Admin';
-    }
-}
-if (!function_exists('ch_can_ui')) {
-    function ch_can_ui(string $action): bool {
-        $role = strtolower(ch_current_role());
-        $map = [
-            'super admin' => ['*'],
-            'admin' => ['view','add','edit','approve','reject','print','export','report','bulk_delete'],
-            'accounts' => ['view','add','approve','reject','print','export','report','collection','payment','purchase'],
-            'manager' => ['view','add','edit','approve','reject','print','export','report'],
-            'marketer' => ['view','add','print','own_order','own_collection'],
-            'delivery man' => ['view','delivery_update'],
-        ];
-        $allowed = $map[$role] ?? ['view'];
-        return in_array('*', $allowed, true) || in_array($action, $allowed, true);
-    }
-}
-if (!function_exists('ch_money')) {
-    function ch_money($value): string { return number_format((float)$value, 2); }
-}
-if (!function_exists('ch_dummy_data')) {
-    function ch_dummy_data(): array {
-        return [
-            'customers' => [
-                ['id'=>128,'name'=>'Rong Roshayon (RM)','mobile'=>'01714446740','address'=>'Chawkbazar, Dhaka','due'=>348500],
-                ['id'=>124,'name'=>'Mim Plastic Products','mobile'=>'01700000001','address'=>'Keraniganj, Dhaka','due'=>0],
-                ['id'=>195,'name'=>'Surovi Plastic','mobile'=>'01800000002','address'=>'Narsingdi','due'=>62500],
-                ['id'=>171,'name'=>'T.K Food Products Distribution Ltd.','mobile'=>'01730021369','address'=>'Gazipur','due'=>0],
-            ],
-            'suppliers' => [
-                ['id'=>21,'name'=>'China Polymer Trading Co.','mobile'=>'+861380000000','balance'=>1250000],
-                ['id'=>33,'name'=>'Local Resin Supplier','mobile'=>'01811111111','balance'=>420000],
-                ['id'=>41,'name'=>'Packaging & Bag Supplier','mobile'=>'01911111111','balance'=>85000],
-            ],
-            'products' => [
-                ['id'=>2001,'name'=>'White CMB-2001','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>0,'rate'=>510],
-                ['id'=>2002,'name'=>'White CMB-2002','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>0,'rate'=>500],
-                ['id'=>2003,'name'=>'White CMB-2003','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>-300,'rate'=>500],
-                ['id'=>7009,'name'=>'Red CMB-7009','grade'=>'Color Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>250,'rate'=>430],
-                ['id'=>5005,'name'=>'Yellow Pigment-13','grade'=>'Pigment','unit'=>'Kilogram','bag'=>25,'stock'=>100,'rate'=>390],
-                ['id'=>1018,'name'=>'Black CMB-1018','grade'=>'Color Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>450,'rate'=>300],
-            ],
-            'activities' => [
-                ['time'=>'09:20 AM','text'=>'SO-20260707-0001 submitted for approval','type'=>'order'],
-                ['time'=>'10:05 AM','text'=>'Collection RV-20260707-0002 approved','type'=>'collection'],
-                ['time'=>'11:30 AM','text'=>'Delivery DC-20260707-0003 assigned','type'=>'delivery'],
-                ['time'=>'12:15 PM','text'=>'Low stock alert for White CMB-2003','type'=>'stock'],
-            ],
-        ];
-    }
-}
-if (!function_exists('ch_ui_head')) {
-    function ch_ui_head(string $title): void { ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=ch_e($title)?> - Color Heaven ERP</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link href="assets/css/colorheaven-erp-ui.css?v=20260707" rel="stylesheet"></head><body class="ch-body"><div id="chLoader" class="ch-loader d-none"><div class="spinner-border text-light"></div><span>Processing...</span></div>
-<?php }
-}
-if (!function_exists('ch_sidebar')) {
-    function ch_sidebar(string $active): void {
-        $menu = [
-            ['dashboard','ch_dashboard.php','bi-grid-1x2','Dashboard'],
-            ['order','ch_sales_order_create.php','bi-cart-check','Sales Order'],
-            ['collection','ch_collection_create.php','bi-cash-coin','Collection'],
-            ['purchase','ch_purchase_create.php','bi-bag-check','Purchase'],
-            ['payment','ch_payment_create.php','bi-wallet2','Payment'],
-        ]; ?>
-<aside class="ch-sidebar" id="chSidebar"><div class="ch-brand"><div class="ch-logo">CH</div><div><strong>Color Heaven</strong><small>The Empire of Color</small></div></div><button class="ch-collapse-btn" type="button" data-sidebar-collapse><i class="bi bi-layout-sidebar-inset"></i></button><nav><?php foreach($menu as $m): ?><a class="<?= $active===$m[0]?'active':'' ?>" href="<?=ch_e($m[1])?>"><i class="bi <?=ch_e($m[2])?>"></i><span><?=ch_e($m[3])?></span></a><?php endforeach; ?></nav><div class="ch-sidebar-footer"><small>Role</small><strong><?=ch_e(ch_current_role())?></strong></div></aside>
-<?php }
-}
-if (!function_exists('ch_topbar')) {
-    function ch_topbar(string $title): void { ?>
-<header class="ch-topbar"><button class="btn ch-icon-btn d-lg-none" type="button" data-mobile-sidebar><i class="bi bi-list"></i></button><div class="ch-page-title"><h1><?=ch_e($title)?></h1><span>Professional ERP workspace</span></div><div class="ch-search"><i class="bi bi-search"></i><input type="search" placeholder="Search customer, product, voucher..."></div><button class="btn ch-icon-btn position-relative"><i class="bi bi-bell"></i><span class="ch-badge">3</span></button><div class="ch-user"><div class="avatar">AR</div><div><strong>Md. Arifur Rahaman</strong><small><?=ch_e(ch_current_role())?></small></div></div></header>
-<?php }
-}
-if (!function_exists('ch_begin_app')) {
-    function ch_begin_app(string $active, string $title): void { ch_ui_head($title); ?><div class="ch-app"><?php ch_sidebar($active); ?><main class="ch-main"><?php ch_topbar($title); ?><section class="ch-content"><?php }
-}
-if (!function_exists('ch_end_app')) {
-    function ch_end_app(): void { ?>
-</section></main></div><?php ch_bottom_nav(); ch_confirm_modal(); ?><div class="toast-container position-fixed top-0 end-0 p-3"><div id="chToast" class="toast"><div class="toast-header"><strong class="me-auto">Color Heaven ERP</strong><button type="button" class="btn-close" data-bs-dismiss="toast"></button></div><div class="toast-body">Action completed successfully.</div></div></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="assets/js/colorheaven-erp-ui.js?v=20260707"></script></body></html>
-<?php }
-}
-if (!function_exists('ch_bottom_nav')) {
-    function ch_bottom_nav(): void { ?>
-<nav class="ch-bottom-nav"><a href="ch_dashboard.php"><i class="bi bi-grid-1x2"></i><span>Home</span></a><a href="ch_sales_order_create.php"><i class="bi bi-cart-plus"></i><span>Order</span></a><a href="ch_collection_create.php"><i class="bi bi-cash"></i><span>Receive</span></a><a href="ch_purchase_create.php"><i class="bi bi-bag-plus"></i><span>Purchase</span></a><a href="ch_payment_create.php"><i class="bi bi-wallet2"></i><span>Payment</span></a></nav>
-<?php }
-}
-if (!function_exists('ch_confirm_modal')) {
-    function ch_confirm_modal(): void { ?>
-<div class="modal fade" id="chConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header"><h5 class="modal-title">Confirm Action</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="mb-0">Are you sure you want to continue?</p></div><div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" data-confirm-ok>Confirm</button></div></div></div></div>
-<?php }
-}
-if (!function_exists('ch_stat_card')) {
-    function ch_stat_card(string $label, string $value, string $icon, string $tone='primary'): void { ?><div class="ch-stat-card tone-<?=ch_e($tone)?>"><div><span><?=ch_e($label)?></span><strong><?=ch_e($value)?></strong></div><i class="bi <?=ch_e($icon)?>"></i></div><?php }
-}
-if (!function_exists('ch_wizard_steps')) {
-    function ch_wizard_steps(array $steps): void { ?><div class="ch-wizard-nav d-md-none"><?php foreach($steps as $i=>$s): ?><button type="button" class="<?=$i===0?'active':''?>" data-step-target="<?=$i+1?>"><span><?=$i+1?></span><?=ch_e($s)?></button><?php endforeach; ?></div><?php }
-}
-if (!function_exists('ch_module_list')) {
-    function ch_module_list(string $title, string $partyLabel='Customer/Supplier'): void { ?>
-<div class="ch-card mt-4"><div class="ch-card-header"><div><h3><?=ch_e($title)?></h3><p>Search, filter, approve, print and export records.</p></div><div class="d-flex gap-2 flex-wrap"><button class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print</button><button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button><button class="btn btn-outline-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</button></div></div><div class="row g-2 mb-3"><div class="col-md-3"><input class="form-control" placeholder="Search voucher, mobile, amount..."></div><div class="col-md-2"><input type="date" class="form-control"></div><div class="col-md-2"><input type="date" class="form-control"></div><div class="col-md-2"><select class="form-select"><option>Status</option><option>Draft</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div><div class="col-md-3"><input class="form-control" placeholder="<?=ch_e($partyLabel)?> filter"></div></div><div class="table-responsive"><table class="table ch-table align-middle"><thead><tr><th><input type="checkbox"></th><th>Voucher</th><th>Date</th><th><?=ch_e($partyLabel)?></th><th>Status</th><th class="text-end">Amount</th><th class="text-end">Action</th></tr></thead><tbody><?php for($i=1;$i<=3;$i++): ?><tr><td><input type="checkbox"></td><td><strong>VCH-20260707-000<?=$i?></strong></td><td>07-Jul-26</td><td>Sample Party <?=$i?></td><td><span class="badge text-bg-warning">Pending</span></td><td class="text-end"><?=ch_money(12500*$i)?></td><td class="text-end ch-actions"><button class="btn btn-sm btn-light">View</button><?php if(ch_can_ui('edit')): ?><button class="btn btn-sm btn-outline-primary">Edit</button><?php endif; ?><button class="btn btn-sm btn-outline-dark">Print</button><?php if(ch_can_ui('approve')): ?><button class="btn btn-sm btn-success" data-confirm="Approve this voucher?">Approve</button><button class="btn btn-sm btn-danger" data-confirm="Reject this voucher?">Reject</button><?php endif; ?></td></tr><?php endfor; ?></tbody></table></div><?php if(ch_can_ui('bulk_delete')): ?><button class="btn btn-outline-danger btn-sm mt-2" data-confirm="Bulk delete selected records?">Bulk Delete</button><?php endif; ?></div>
-<?php }
-}
+if (!function_exists('ch_e')) { function ch_e($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); } }
+if (!function_exists('ch_current_role')) { function ch_current_role(): string { if (function_exists('user')) { $u = user(); if (!empty($u['role_name'])) return (string)$u['role_name']; } return 'Super Admin'; } }
+if (!function_exists('ch_can_ui')) { function ch_can_ui(string $action): bool { $role = strtolower(ch_current_role()); $map = ['super admin'=>['*'],'admin'=>['view','add','edit','approve','reject','print','export','report','bulk_delete'],'accounts'=>['view','add','approve','reject','print','export','report','collection','payment','purchase'],'manager'=>['view','add','edit','approve','reject','print','export','report'],'marketer'=>['view','add','print','own_order','own_collection'],'delivery man'=>['view','delivery_update']]; $allowed = $map[$role] ?? ['view']; return in_array('*', $allowed, true) || in_array($action, $allowed, true); } }
+if (!function_exists('ch_money')) { function ch_money($value): string { return number_format((float)$value, 2); } }
+if (!function_exists('ch_dummy_data')) { function ch_dummy_data(): array { return ['customers'=>[['id'=>128,'name'=>'Rong Roshayon (RM)','mobile'=>'01714446740','address'=>'Chawkbazar, Dhaka','due'=>348500],['id'=>124,'name'=>'Mim Plastic Products','mobile'=>'01700000001','address'=>'Keraniganj, Dhaka','due'=>0],['id'=>195,'name'=>'Surovi Plastic','mobile'=>'01800000002','address'=>'Narsingdi','due'=>62500],['id'=>171,'name'=>'T.K Food Products Distribution Ltd.','mobile'=>'01730021369','address'=>'Gazipur','due'=>0]],'suppliers'=>[['id'=>21,'name'=>'China Polymer Trading Co.','mobile'=>'+861380000000','balance'=>1250000],['id'=>33,'name'=>'Local Resin Supplier','mobile'=>'01811111111','balance'=>420000],['id'=>41,'name'=>'Packaging & Bag Supplier','mobile'=>'01911111111','balance'=>85000]],'products'=>[['id'=>2001,'name'=>'White CMB-2001','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>0,'rate'=>510],['id'=>2002,'name'=>'White CMB-2002','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>0,'rate'=>500],['id'=>2003,'name'=>'White CMB-2003','grade'=>'Filler Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>-300,'rate'=>500],['id'=>7009,'name'=>'Red CMB-7009','grade'=>'Color Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>250,'rate'=>430],['id'=>5005,'name'=>'Yellow Pigment-13','grade'=>'Pigment','unit'=>'Kilogram','bag'=>25,'stock'=>100,'rate'=>390],['id'=>1018,'name'=>'Black CMB-1018','grade'=>'Color Masterbatch','unit'=>'Kilogram','bag'=>25,'stock'=>450,'rate'=>300]],'activities'=>[['time'=>'09:20 AM','text'=>'SO-20260707-0001 submitted for approval','type'=>'order'],['time'=>'10:05 AM','text'=>'Collection RV-20260707-0002 approved','type'=>'collection'],['time'=>'11:30 AM','text'=>'Delivery DC-20260707-0003 assigned','type'=>'delivery'],['time'=>'12:15 PM','text'=>'Low stock alert for White CMB-2003','type'=>'stock']]]; } }
+if (!function_exists('ch_menu_items')) { function ch_menu_items(): array { return [
+['dashboard','ch_dashboard.php','bi-grid-1x2','Dashboard'],['approvals','ch_approvals.php','bi-check2-square','Approvals'],['crm','ch_crm_leads.php','bi-bullseye','CRM Leads'],['followups','ch_followups.php','bi-telephone','Follow-ups'],['quotations','ch_quotations.php','bi-file-earmark-text','Quotations'],['customers','ch_customers.php','bi-people','Customers'],['suppliers','ch_suppliers.php','bi-building','Suppliers'],['products','ch_products.php','bi-box-seam','Products'],['bulk','ch_bulk_import_export.php','bi-file-earmark-spreadsheet','Bulk Import/Export'],['order','ch_sales_order_create.php','bi-cart-check','Sales Orders'],['delivery','ch_delivery_challans.php','bi-truck','Delivery Challans'],['invoice','ch_sales_invoices.php','bi-receipt','Sales Invoices'],['collection','ch_collection_create.php','bi-cash-coin','Collections'],['purchase','ch_purchase_create.php','bi-bag-check','Purchases'],['payment','ch_payment_create.php','bi-wallet2','Payments'],['inventory','ch_inventory.php','bi-stack','Inventory'],['inventory_statement','ch_inventory_statement.php','bi-clipboard-data','Inventory Statement'],['ledger','ch_ledger.php','bi-book','Ledger'],['reports','ch_reports.php','bi-graph-up','Reports'],['ageing','ch_ageing_report.php','bi-hourglass-split','Ageing Report'],['settings','ch_settings.php','bi-gear','Settings'],['sms','ch_sms_settings.php','bi-chat-dots','SMS Settings'],['users','ch_users.php','bi-person-gear','Users'],['roles','ch_roles.php','bi-shield-lock','Roles'],['activity','ch_activity_log.php','bi-clock-history','Activity Log'],['backup','ch_backup.php','bi-cloud-download','Backup']]; } }
+if (!function_exists('ch_ui_head')) { function ch_ui_head(string $title): void { ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?=ch_e($title)?> - Color Heaven ERP</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link href="assets/css/colorheaven-erp-ui.css?v=20260707" rel="stylesheet"></head><body class="ch-body"><div id="chLoader" class="ch-loader d-none"><div class="spinner-border text-light"></div><span>Processing...</span></div><?php } }
+if (!function_exists('ch_sidebar')) { function ch_sidebar(string $active): void { $menu = ch_menu_items(); ?><aside class="ch-sidebar" id="chSidebar"><div class="ch-brand"><div class="ch-logo">CH</div><div><strong>Color Heaven</strong><small>The Empire of Color</small></div></div><button class="ch-collapse-btn" type="button" data-sidebar-collapse><i class="bi bi-layout-sidebar-inset"></i></button><nav><?php foreach($menu as $m): ?><a class="<?= $active===$m[0]?'active':'' ?>" href="<?=ch_e($m[1])?>"><i class="bi <?=ch_e($m[2])?>"></i><span><?=ch_e($m[3])?></span></a><?php endforeach; ?></nav><div class="ch-sidebar-footer"><small>Role</small><strong><?=ch_e(ch_current_role())?></strong></div></aside><?php } }
+if (!function_exists('ch_topbar')) { function ch_topbar(string $title): void { ?><header class="ch-topbar"><button class="btn ch-icon-btn d-lg-none" type="button" data-mobile-sidebar><i class="bi bi-list"></i></button><div class="ch-page-title"><h1><?=ch_e($title)?></h1><span>Professional ERP workspace</span></div><div class="ch-search"><i class="bi bi-search"></i><input type="search" placeholder="Search customer, product, voucher..."></div><button class="btn ch-icon-btn position-relative"><i class="bi bi-bell"></i><span class="ch-badge">3</span></button><div class="ch-user"><div class="avatar">AR</div><div><strong>Md. Arifur Rahaman</strong><small><?=ch_e(ch_current_role())?></small></div></div></header><?php } }
+if (!function_exists('ch_begin_app')) { function ch_begin_app(string $active, string $title): void { ch_ui_head($title); ?><div class="ch-app"><?php ch_sidebar($active); ?><main class="ch-main"><?php ch_topbar($title); ?><section class="ch-content"><?php } }
+if (!function_exists('ch_end_app')) { function ch_end_app(): void { ?></section></main></div><?php ch_bottom_nav(); ch_confirm_modal(); ?><div class="toast-container position-fixed top-0 end-0 p-3"><div id="chToast" class="toast"><div class="toast-header"><strong class="me-auto">Color Heaven ERP</strong><button type="button" class="btn-close" data-bs-dismiss="toast"></button></div><div class="toast-body">Action completed successfully.</div></div></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="assets/js/colorheaven-erp-ui.js?v=20260707"></script></body></html><?php } }
+if (!function_exists('ch_bottom_nav')) { function ch_bottom_nav(): void { ?><nav class="ch-bottom-nav"><a href="ch_dashboard.php"><i class="bi bi-grid-1x2"></i><span>Home</span></a><a href="ch_sales_order_create.php"><i class="bi bi-cart-plus"></i><span>Order</span></a><a href="ch_collection_create.php"><i class="bi bi-cash"></i><span>Receive</span></a><a href="ch_reports.php"><i class="bi bi-graph-up"></i><span>Reports</span></a><a href="ch_settings.php"><i class="bi bi-gear"></i><span>More</span></a></nav><?php } }
+if (!function_exists('ch_confirm_modal')) { function ch_confirm_modal(): void { ?><div class="modal fade" id="chConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header"><h5 class="modal-title">Confirm Action</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="mb-0">Are you sure you want to continue?</p></div><div class="modal-footer"><button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" data-confirm-ok>Confirm</button></div></div></div></div><?php } }
+if (!function_exists('ch_stat_card')) { function ch_stat_card(string $label, string $value, string $icon, string $tone='primary'): void { ?><div class="ch-stat-card tone-<?=ch_e($tone)?>"><div><span><?=ch_e($label)?></span><strong><?=ch_e($value)?></strong></div><i class="bi <?=ch_e($icon)?>"></i></div><?php } }
+if (!function_exists('ch_wizard_steps')) { function ch_wizard_steps(array $steps): void { ?><div class="ch-wizard-nav d-md-none"><?php foreach($steps as $i=>$s): ?><button type="button" class="<?=$i===0?'active':''?>" data-step-target="<?=$i+1?>"><span><?=$i+1?></span><?=ch_e($s)?></button><?php endforeach; ?></div><?php } }
+if (!function_exists('ch_module_list')) { function ch_module_list(string $title, string $partyLabel='Customer/Supplier'): void { ?><div class="ch-card mt-4"><div class="ch-card-header"><div><h3><?=ch_e($title)?></h3><p>Search, filter, approve, print and export records.</p></div><div class="d-flex gap-2 flex-wrap"><button class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print</button><button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button><button class="btn btn-outline-danger btn-sm"><i class="bi bi-filetype-pdf"></i> PDF</button></div></div><div class="row g-2 mb-3"><div class="col-md-3"><input class="form-control" placeholder="Search voucher, mobile, amount..."></div><div class="col-md-2"><input type="date" class="form-control"></div><div class="col-md-2"><input type="date" class="form-control"></div><div class="col-md-2"><select class="form-select"><option>Status</option><option>Draft</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div><div class="col-md-3"><input class="form-control" placeholder="<?=ch_e($partyLabel)?> filter"></div></div><div class="table-responsive"><table class="table ch-table align-middle"><thead><tr><th><input type="checkbox"></th><th>Voucher</th><th>Date</th><th><?=ch_e($partyLabel)?></th><th>Status</th><th class="text-end">Amount</th><th class="text-end">Action</th></tr></thead><tbody><?php for($i=1;$i<=3;$i++): ?><tr><td><input type="checkbox"></td><td><strong>VCH-20260707-000<?=$i?></strong></td><td>07-Jul-26</td><td>Sample Party <?=$i?></td><td><span class="badge text-bg-warning">Pending</span></td><td class="text-end"><?=ch_money(12500*$i)?></td><td class="text-end ch-actions"><button class="btn btn-sm btn-light">View</button><?php if(ch_can_ui('edit')): ?><button class="btn btn-sm btn-outline-primary">Edit</button><?php endif; ?><button class="btn btn-sm btn-outline-dark">Print</button><?php if(ch_can_ui('approve')): ?><button class="btn btn-sm btn-success" data-confirm="Approve this voucher?">Approve</button><button class="btn btn-sm btn-danger" data-confirm="Reject this voucher?">Reject</button><?php endif; ?></td></tr><?php endfor; ?></tbody></table></div><?php if(ch_can_ui('bulk_delete')): ?><button class="btn btn-outline-danger btn-sm mt-2" data-confirm="Bulk delete selected records?">Bulk Delete</button><?php endif; ?></div><?php } }
+if (!function_exists('ch_quick_form')) { function ch_quick_form(string $title, array $fields): void { ?><div class="ch-card"><div class="ch-card-header"><div><h3><?=ch_e($title)?></h3><p>Clean responsive entry form with validation-ready fields.</p></div><span class="badge text-bg-info">UI Preview</span></div><form data-demo><div class="ch-form-grid"><?php foreach($fields as $f): ?><div class="ch-field <?=!empty($f['full'])?'full':''?>"><label><?=ch_e($f['label'])?></label><?php if(($f['type']??'text')==='textarea'): ?><textarea class="form-control" rows="3" placeholder="<?=ch_e($f['placeholder']??'')?>"></textarea><?php elseif(($f['type']??'text')==='select'): ?><select class="form-select"><?php foreach(($f['options']??['Active','Inactive']) as $op): ?><option><?=ch_e($op)?></option><?php endforeach; ?></select><?php else: ?><input type="<?=ch_e($f['type']??'text')?>" class="form-control" placeholder="<?=ch_e($f['placeholder']??'')?>" value="<?=ch_e($f['value']??'')?>"><?php endif; ?></div><?php endforeach; ?></div><div class="ch-sticky-actions"><button type="button" class="btn btn-outline-secondary">Cancel</button><button class="btn btn-ch-primary">Save</button></div></form></div><?php } }
 ?>
