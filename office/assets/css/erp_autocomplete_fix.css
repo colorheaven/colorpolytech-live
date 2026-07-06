@@ -26,14 +26,44 @@
   line-height: 1.35;
 }
 
-.erp-product-lookup-input,
-input[name*="customer" i],
-input[id*="customer" i],
-input[name*="supplier" i],
-input[id*="supplier" i],
-input[name*="lead" i],
-input[id*="lead" i] {
+.erp-lookup-visible,
+input:not([type="hidden"])[name*="customer" i],
+input:not([type="hidden"])[id*="customer" i],
+input:not([type="hidden"])[name*="supplier" i],
+input:not([type="hidden"])[id*="supplier" i],
+input:not([type="hidden"])[name*="lead" i],
+input:not([type="hidden"])[id*="lead" i],
+.erp-product-lookup-input {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   min-width: 260px;
+  position: relative;
+  z-index: 2;
+}
+
+input[type="hidden"][name*="customer" i],
+input[type="hidden"][id*="customer" i],
+input[type="hidden"][name*="product" i],
+input[type="hidden"][id*="product" i],
+input[type="hidden"][name*="supplier" i],
+input[type="hidden"][id*="supplier" i] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  min-width: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+.erp-lookup-visible-wrap {
+  min-height: 58px;
+  overflow: visible !important;
+  position: relative;
 }
 
 .erp-product-lookup-cell {
@@ -55,15 +85,17 @@ input[id*="lead" i] {
     min-width: 390px !important;
   }
 
+  .erp-lookup-visible,
   .erp-product-lookup-input,
-  input[name*="customer" i],
-  input[id*="customer" i],
-  input[name*="supplier" i],
-  input[id*="supplier" i],
-  input[name*="lead" i],
-  input[id*="lead" i] {
-    min-width: 340px !important;
+  input:not([type="hidden"])[name*="customer" i],
+  input:not([type="hidden"])[id*="customer" i],
+  input:not([type="hidden"])[name*="supplier" i],
+  input:not([type="hidden"])[id*="supplier" i],
+  input:not([type="hidden"])[name*="lead" i],
+  input:not([type="hidden"])[id*="lead" i] {
+    min-width: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
     font-size: 16px;
     padding: 12px 14px;
   }
