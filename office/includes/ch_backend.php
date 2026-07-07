@@ -2,7 +2,8 @@
 /**
  * Color Heaven Office ERP backend helper.
  * Shared-hosting compatible, no Composer/Laravel dependency.
- * Does not contain database password. It reads live config/database.php only.
+ * Does not contain database password. It reads live config/database.php,
+ * .env fallbacks, environment variables, or PHP constants.
  */
 if (session_status() !== PHP_SESSION_ACTIVE) {
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
@@ -21,6 +22,46 @@ if (!function_exists('chb_e')) {
 }
 
 if (!function_exists('chb_config')) {
+    function chb_env_file_values(string $path): array {
+        if (!is_file($path) || !is_readable($path)) return [];
+        $values = [];
+        foreach ((array)file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim((string)$line);
+            if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) continue;
+            [$key, $value] = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            if ($key === '') continue;
+            if (
+                (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+                (str_starts_with($value, "'") && str_ends_with($value, "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
+            $values[$key] = $value;
+        }
+        return $values;
+    }
+
+    function chb_env(string $key, ?array $envFiles = null): string {
+        $value = getenv($key);
+        if ($value !== false) return (string)$value;
+        if (defined($key)) return (string)constant($key);
+        static $loaded = null;
+        if ($loaded === null) {
+            $loaded = [];
+            $paths = $envFiles ?: [
+                __DIR__ . '/../.env',
+                __DIR__ . '/../../.env',
+                dirname((string)($_SERVER['DOCUMENT_ROOT'] ?? '')) . '/.env',
+            ];
+            foreach (array_unique($paths) as $path) {
+                $loaded = array_replace($loaded, chb_env_file_values($path));
+            }
+        }
+        return isset($loaded[$key]) ? (string)$loaded[$key] : '';
+    }
+
     function chb_config(): array {
         static $cfg = null;
         if ($cfg !== null) return $cfg;
@@ -33,10 +74,33 @@ if (!function_exists('chb_config')) {
         foreach (['DB_HOST','DB_NAME','DB_USER','DB_PASS','DB_CHARSET'] as $k) {
             if (defined($k)) $cfg[strtolower(substr($k, 3))] = constant($k);
         }
-        $cfg['host'] = $cfg['host'] ?? $cfg['db_host'] ?? $cfg['hostname'] ?? 'localhost';
-        $cfg['name'] = $cfg['name'] ?? $cfg['database'] ?? $cfg['db_name'] ?? '';
-        $cfg['user'] = $cfg['user'] ?? $cfg['username'] ?? $cfg['db_user'] ?? '';
-        $cfg['pass'] = $cfg['pass'] ?? $cfg['password'] ?? $cfg['db_pass'] ?? '';
+        $cfg['host'] = $cfg['host'] ?? $cfg['db_host'] ?? $cfg['hostname'] ?? null;
+        $cfg['name'] = $cfg['name'] ?? $cfg['database'] ?? $cfg['db_name'] ?? null;
+        $cfg['user'] = $cfg['user'] ?? $cfg['username'] ?? $cfg['db_user'] ?? null;
+        $cfg['pass'] = $cfg['pass'] ?? $cfg['password'] ?? $cfg['db_pass'] ?? null;
+        $envMap = [
+            'host' => ['OFFICE_DB_HOST', 'DB_HOST'],
+            'name' => ['OFFICE_DB_NAME', 'DB_NAME'],
+            'user' => ['OFFICE_DB_USER', 'DB_USER'],
+            'pass' => ['OFFICE_DB_PASS', 'DB_PASS'],
+            'charset' => ['OFFICE_DB_CHARSET', 'DB_CHARSET'],
+            'port' => ['OFFICE_DB_PORT', 'DB_PORT'],
+            'socket' => ['OFFICE_DB_SOCKET', 'DB_SOCKET'],
+        ];
+        foreach ($envMap as $key => $names) {
+            if (!empty($cfg[$key])) continue;
+            foreach ($names as $name) {
+                $value = chb_env($name);
+                if ($value !== '') {
+                    $cfg[$key] = $value;
+                    break;
+                }
+            }
+        }
+        $cfg['host'] = $cfg['host'] ?: 'localhost';
+        $cfg['name'] = $cfg['name'] ?: '';
+        $cfg['user'] = $cfg['user'] ?: '';
+        $cfg['pass'] = $cfg['pass'] ?: '';
         $cfg['charset'] = $cfg['charset'] ?? 'utf8mb4';
         return $cfg;
     }
@@ -51,6 +115,8 @@ if (!function_exists('chb_db')) {
             throw new RuntimeException('Database config missing. Please create office/config/database.php on live server.');
         }
         $dsn = 'mysql:host='.$cfg['host'].';dbname='.$cfg['name'].';charset='.$cfg['charset'];
+        if (!empty($cfg['port'])) $dsn .= ';port='.$cfg['port'];
+        if (!empty($cfg['socket'])) $dsn .= ';unix_socket='.$cfg['socket'];
         $pdo = new PDO($dsn, $cfg['user'], $cfg['pass'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

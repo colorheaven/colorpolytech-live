@@ -40,6 +40,8 @@ Example files are included:
 
 On the live server, copy the matching example file to `config/database.php` and fill the live cPanel values there only. The live config file is ignored by Git.
 
+Office ERP also supports `OFFICE_DB_*` values from `.env`, server environment variables, or PHP constants as a fallback. For Namecheap/cPanel, `office/config/database.php` is still the recommended and easiest setup.
+
 ## Deployment Safety
 
 - `.cpanel.yml` uses `rsync -a` only.
@@ -70,6 +72,7 @@ The plan covers:
 A core migration foundation has been added here:
 
 - `database/migrations/2026_07_05_core_security_audit_permissions.sql`
+- `database/migrations/2026_07_07_database_connection_compatibility.sql`
 
 Important: this migration is **not auto-run**. Review it, backup `colojmbr_office`, then import manually only if needed.
 

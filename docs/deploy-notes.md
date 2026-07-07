@@ -23,8 +23,8 @@ Namecheap shared hosting / cPanel.
 1. Backup current live files.
 2. Export both databases from phpMyAdmin.
 3. Upload only the correct folder to the correct document root.
-4. Create `.env` on the server from `.env.example`.
-5. Add real database username/password only on server.
+4. Create each live `config/database.php` from the matching `config/database.example.php`.
+5. Add real database username/password only on server. Office ERP can also read `OFFICE_DB_*` values from `.env` as a fallback.
 6. Import SQL files through phpMyAdmin.
 7. Test login and dashboard before replacing production data.
 8. Confirm admin and office subdomains return `noindex` robots rules.

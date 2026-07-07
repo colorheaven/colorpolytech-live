@@ -2,8 +2,8 @@
 require_once __DIR__.'/bootstrap.php';
 
 function sms_secret_key(): string {
-    $cfg = require __DIR__.'/../config/database.php';
-    return hash('sha256', ($cfg['database'] ?? '').'|'.($cfg['username'] ?? '').'|'.($cfg['password'] ?? '').'|office-sms-secret', true);
+    $cfg = function_exists('chb_config') ? chb_config() : [];
+    return hash('sha256', ($cfg['name'] ?? $cfg['database'] ?? '').'|'.($cfg['user'] ?? $cfg['username'] ?? '').'|'.($cfg['pass'] ?? $cfg['password'] ?? '').'|office-sms-secret', true);
 }
 
 function sms_encrypt_secret($plain): string {
@@ -33,21 +33,39 @@ function sms_setting_row(): array {
     return $row ?: [];
 }
 
+function sms_log_pick(array $cols, array $candidates): string {
+    foreach ($candidates as $candidate) {
+        if (in_array($candidate, $cols, true)) return $candidate;
+    }
+    return '';
+}
+
 function sms_log($recipientType, $recipientId, $mobile, $templateId, $message, $response, $status, $sentBy=null): void {
     if (!table_exists('sms_logs')) return;
     $cols = table_columns('sms_logs');
+    $statusValue = match (strtolower((string)$status)) {
+        'sent' => 'Sent',
+        'failed' => 'Failed',
+        default => 'Pending',
+    };
     $data = [
-        'recipient_type' => $recipientType,
-        'recipient_id' => $recipientId ?: null,
-        'mobile_number' => $mobile,
-        'sms_template_id' => $templateId ?: null,
         'message' => $message,
-        'gateway_response' => is_scalar($response) ? (string)$response : json_encode($response),
-        'status' => $status,
+        'status' => $statusValue,
         'sent_by' => $sentBy ?: (user()['id'] ?? null),
-        'sent_at' => in_array($status, ['sent','failed'], true) ? date('Y-m-d H:i:s') : null,
+        'sent_at' => in_array(strtolower((string)$status), ['sent','failed'], true) ? date('Y-m-d H:i:s') : null,
         'created_at' => date('Y-m-d H:i:s'),
     ];
+    $mapped = [
+        sms_log_pick($cols, ['recipient_type', 'receiver_type']) => $recipientType,
+        sms_log_pick($cols, ['recipient_id', 'receiver_id']) => $recipientId ?: null,
+        sms_log_pick($cols, ['mobile_number', 'mobile']) => $mobile,
+        sms_log_pick($cols, ['sms_template_id', 'template_id']) => $templateId ?: null,
+        sms_log_pick($cols, ['gateway_response', 'api_response', 'response']) => is_scalar($response) ? (string)$response : json_encode($response),
+        sms_log_pick($cols, ['event_type']) => 'sms_send',
+    ];
+    foreach ($mapped as $column => $value) {
+        if ($column !== '') $data[$column] = $value;
+    }
     $data = array_intersect_key($data, array_flip($cols));
     if (!$data) return;
     $keys = array_keys($data);
